@@ -1,0 +1,438 @@
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+
+public class Tommy2048 {
+
+    private int[][] board;
+
+    private int[][] saver;
+    private int score;
+    private boolean playing;
+    private LinkedList<int[][]> moves;
+    private LinkedList<Integer> scores;
+
+    /**
+     * Constructor sets up game state.
+     */
+    public Tommy2048() {
+        board = new int[4][4];
+        update();
+        playing = true;
+        moves = new LinkedList<>();
+        scores = new LinkedList<>();
+        moves.add(getBoard(board));
+        scores.add(score);
+    }
+    public int[] pickLoc() {
+        int r = (int) (Math.random() * 4);
+        int c = (int) (Math.random() * 4);
+        while (board[r][c] != 0) {
+            r = (int) (Math.random() * 4);
+            c = (int) (Math.random() * 4);
+        }
+        return new int[] {r, c};
+    }
+
+    public void createTile() {
+        int ranNum = (int) (Math.random() * 3) + 1;
+        int[] rc = pickLoc();
+        int r = rc[0];
+        int c = rc[1];
+        if (ranNum == 1 || ranNum == 2) {
+            board[r][c] = 2;
+        } else {
+            board[r][c] = 4;
+        }
+        moves.add(getBoard(board));
+        setBoard();
+    }
+
+    public void setBoard() {
+        try {
+            BufferedWriter w = new BufferedWriter(new FileWriter("files/moves.txt"));
+            w.write("" + score + "\n");
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    w.write(board[i][j] + " ");
+                }
+                w.write("\n");
+            }
+            w.close();
+        } catch (IOException ioe) {
+            System.out.println("ioe");
+        }
+    }
+
+    public void update() {
+        try {
+            BufferedReader r = new BufferedReader(new FileReader("files/moves.txt"));
+            score = Integer.parseInt(r.readLine());
+            for (int i = 0; i < 4; i++) {
+                String[] row = r.readLine().split(" ");
+                for (int j = 0; j < 4; j++) {
+                    board[i][j] = Integer.parseInt(row[j]);
+                }
+
+            }
+        } catch (IOException ioe) {
+            System.out.println("ioe");
+        }
+    }
+
+
+
+    public void save() {
+        saver = getBoard(board);
+    }
+    public void load() {
+        board = saver;
+        setBoard();
+    }
+
+    public void undo() {
+        if (scores.size() > 1 && moves.size() > 1 && playing()) {
+            scores.removeLast();
+            moves.removeLast();
+            score = scores.getLast();
+            int[][] getB = getBoard(moves.getLast());
+            board = getB;
+            setBoard();
+        }
+    }
+
+    public void reset() {
+        board = new int[4][4];
+        score = 0;
+        moves = new LinkedList<>();
+        scores = new LinkedList<>();
+        playing = true;
+        createTile();
+        scores.add(0);
+        setBoard();
+        moves.add(getBoard(board));
+    }
+
+
+    /**
+     * checkWinner checks whether the game has reached a win condition.
+     * checkWinner only looks for horizontal wins.
+     *
+     * @return 0 if nobody has won yet, 1 if player 1 has won, and 2 if player 2
+     *         has won, 3 if the game hits stalemate
+     */
+    public int zeroCounter() {
+        int count = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (board[i][j] == 0) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public void moveDown() {
+        //System.out.println(Arrays.deepToString(board));
+        for (int i = 0; i < 4; i++) {
+            int first = board[i][0];
+            int second = board[i][1];
+            int third = board[i][2];
+            int fourth = board[i][3];
+            if (second == 0 && third == 0 && fourth == 0) {
+                board[i][3] = first;
+                board[i][0] = 0;
+            } else if (first == 0 && third == 0 && fourth == 0) {
+                board[i][3] = second;
+                board[i][1] = 0;
+            } else if (first == 0 && second == 0 && fourth == 0) {
+                board[i][3] = third;
+                board[i][2] = 0;
+            } else if (first != 0 && second != 0 && third == 0 && fourth == 0) {
+                if (first == second) {
+                    board[i][3] = first * 2;
+                    score += board[i][3];
+
+                } else {
+                    board[i][3] = second;
+                    board[i][2] = first;
+                }
+                board[i][1] = 0;
+                board[i][0] = 0;
+            } else if (first != 0 && second == 0 && third != 0 && fourth == 0) {
+                if (first == third) {
+                    board[i][3] = first * 2;
+                    score += board[i][3];
+                    board[i][2] = 0;
+                } else {
+                    board[i][3] = third;
+                    board[i][2] = first;
+                }
+                board[i][1] = 0;
+                board[i][0] = 0;
+            } else if (first != 0 && second == 0 && third == 0 && fourth != 0) {
+                if (first == fourth) {
+                    board[i][3] = first * 2;
+                    score += board[i][3];
+                    board[i][2] = 0;
+                } else {
+                    board[i][2] = first;
+                }
+                board[i][1] = 0;
+                board[i][0] = 0;
+            } else if (first == 0 && second != 0 && third != 0 && fourth == 0) {
+                if (second == third) {
+                    board[i][3] = second * 2;
+                    score += board[i][3];
+                    board[i][2] = 0;
+                } else {
+                    board[i][3] = third;
+                    board[i][2] = second;
+                }
+                board[i][1] = 0;
+            } else if (first == 0 && second != 0 && third == 0 && fourth != 0) {
+                if (fourth == second) {
+                    board[i][3] = second * 2;
+                    board[i][2] = 0;
+                    score += board[i][3];
+                } else {
+                    board[i][2] = board[i][1];
+                }
+                board[i][1] = 0;
+                board[i][0] = 0;
+            } else if (first == 0 && second == 0 && third != 0 && fourth != 0) {
+                if (third == fourth) {
+                    board[i][3] = third * 2;
+                    score += board[i][3];
+                    board[i][2] = 0;
+                }
+            } else if (first != 0 && second != 0 && third != 0 && fourth == 0) {
+                if (second == third) {
+                    board[i][3] = second * 2;
+                    score += board[i][3];
+                    board[i][2] = first;
+                    board[i][1] = 0;
+
+                } else if (first == second) {
+                    board[i][3] = third;
+                    board[i][2] = second * 2;
+                    score += board[i][2];
+                    board[i][1] = 0;
+                } else {
+                    board[i][3] = third;
+                    board[i][2] = second;
+                    board[i][1] = first;
+                }
+                board[i][0] = 0;
+            } else if (first == 0 && second != 0 && third != 0 && fourth != 0) {
+                if (third == fourth) {
+                    board[i][3] = third * 2;
+                    score += board[i][3];
+                    board[i][2] = second;
+                    board[i][1] = 0;
+                } else if (second == third) {
+                    board[i][2] = second * 2;
+                    board[i][1] = 0;
+                    score += board[i][2];
+                }
+                board[i][0] = 0;
+            } else if (first != 0 && second != 0 && third == 0 && fourth != 0) {
+                if (second == fourth) {
+                    board[i][3] = second * 2;
+                    score += board[i][3];
+                    board[i][2] = first;
+                    board[i][1] = 0;
+                } else if (first == second) {
+                    board[i][2] = second * 2;
+                    board[i][1] = 0;
+                    score += board[i][2];
+                } else {
+                    board[i][2] = second;
+                    board[i][1] = first;
+                }
+                board[i][0] = 0;
+            } else if (first != 0 && second == 0 && third != 0 && fourth != 0) {
+                if (third == fourth) {
+                    board[i][3] = third * 2;
+                    score += board[i][3];
+                    board[i][2] = first;
+                } else if (first == third) {
+                    board[i][2] = first * 2;
+                    score += board[i][2];
+                } else {
+                    board[i][1] = first;
+                }
+                board[i][0] = 0;
+            } else if (first != 0 && second != 0 && third != 0 && fourth != 0) {
+                if (third == fourth) {
+                    board[i][3] = third * 2;
+                    score += board[i][3];
+                    if (first == second) {
+                        board[i][2] = first * 2;
+                        score += board[i][2];
+                        board[i][1] = 0;
+                    } else {
+                        board[i][2] = second;
+                        board[i][1] = first;
+                    }
+                    board[i][0] = 0;
+                } else if (second == third) {
+                    board[i][2] = second * 2;
+                    board[i][1] = first;
+                    board[i][0] = 0;
+                    score += board[i][2];
+                } else if (first == second) {
+                    board[i][1] = first * 2;
+                    board[i][0] = 0;
+                    score += board[i][1];
+                }
+            }
+        }
+        scores.add(score);
+
+    }
+
+    public void spin() {
+        //encapsulaton
+        int[][] copy = new int[4][4];
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                copy[i][j] = board[3 - j][i];
+            }
+        }
+        board = copy;
+
+    }
+
+    public void moveLeft() {
+        spin();
+        moveDown();
+        spin();
+        spin();
+        spin();
+        setBoard();
+        System.out.println(Arrays.deepToString(board));
+    }
+
+    public void moveRight() {
+        board = getBoard(board);
+        moveRightRel();
+        setBoard();
+        System.out.println(Arrays.deepToString(board));
+    }
+
+    public void moveUp() {
+        spin();
+        spin();
+        moveDown();
+        spin();
+        spin();
+        setBoard();
+        System.out.println(Arrays.deepToString(board));
+    }
+
+    public void moveRightRel() {
+        spin();
+        spin();
+        spin();
+        moveDown();
+        spin();
+        setBoard();
+    }
+
+    /**
+     * getCell is a getter for the contents of the cell specified by the method
+     * arguments.
+     *
+     * @param c column to retrieve
+     * @param r row to retrieve
+     * @return an integer denoting the contents of the corresponding cell on the
+     *         game board. 0 = empty, 1 = Player 1, 2 = Player 2
+     */
+    public int getCell(int r, int c) {
+        return board[r][c];
+    }
+
+    public int getScore() {
+        return this.score;
+    }
+
+    public int win() {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (board[i][j] == 2048) {
+                    playing = false;
+                    return 0;
+                }
+            }
+        }
+        if (zeroCounter() == 0) {
+            int[][] currBoard = getBoard(board);
+            moveDown();
+            if (!equals(board, currBoard)) {
+                board = getBoard(currBoard);
+                return -1;
+            }
+            board = getBoard(currBoard);
+            moveUp();
+            if (!equals(board, currBoard)) {
+                board = getBoard(currBoard);
+                return -1;
+            }
+            board = getBoard(currBoard);
+            moveLeft();
+            if (!equals(board, currBoard)) {
+                board = getBoard(currBoard);
+                return -1;
+            }
+            board = getBoard(currBoard);
+            moveRight();
+            if (!equals(board, currBoard)) {
+                board = getBoard(currBoard);
+                return -1;
+            }
+            playing = false;
+            return 1;
+        }
+        return -1;
+    }
+
+    public boolean equals(int[][] b1, int[][] b2) {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (b1[i][j] != b2[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static int[][] getBoard(int[][] arr) {
+        int[][] ans = new int[4][4];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                ans[i][j] = arr[i][j];
+            }
+        }
+        return ans;
+    }
+
+
+    //pull variables for testing
+    public void setTBoard(int[][] newBoard) {
+        board = getBoard(newBoard);
+        setBoard();
+    }
+
+    public int[][] getTestBoard() {
+        return board;
+    }
+    public boolean playing() {
+        return this.playing;
+    }
+
+}
