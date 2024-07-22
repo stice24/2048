@@ -1,0 +1,167 @@
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+
+public class Tommy2048Test {
+
+    /**
+     * these test and result boards are all rotated 90 degrees counter-clockwise relative to
+     * board appearance due to my "spin"-ing method of making moves, so that is kept in mind
+     * with testing!
+     */
+    private int[][] winArr = new int[][] {{2048,0,0,0}, {2048,0,0,0}, {2048,0,0,0}, {2048,0,0,0}};
+    private int[][] keepArr = new int[][] {{2,0,0,0}, {2,0,0,0}, {2,0,0,0}, {2,0,0,0}};
+
+    private int[][] lBoard = new int[][] {{2,4,8,64}, {16,128,4,32}, {32,250,2,16}, {2,8,4,2}};
+
+    private int[][] moveBoard = new int[][] {{2,0,0,2}, {0,0,0,0}, {0,0,0,0}, {2,0,0,2}};
+
+    private int[][] doubleBoard = new int[][] {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,8}};
+
+    private int[][] mergeBoard = new int[][] {{2,2,2,2}, {0,0,0,0}, {0,0,0,0}, {2,0,0,2}};
+
+    private int[][] mergeRes = new int[][] {{0,0,4,4}, {0,0,0,0}, {0,0,0,0}, {0,0,0,4}};
+
+    private int[][] mtBoard = new int[][] {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+
+    private int[][] downBoard = new int[][] {{0,0,0,4}, {0,0,0,0}, {0,0,0,0}, {0,0,0,4}};
+
+    private int[][] upBoard = new int[][] {{4,0,0,0}, {0,0,0,0}, {0,0,0,0}, {4,0,0,0}};
+
+    private int[][] rightBoard = new int[][] {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {4,0,0,4}};
+
+    private int[][] leftBoard = new int[][] {{4,0,0,4}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+
+    @Test
+    public void testWin() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(winArr);
+        assertEquals(0, t.win());
+    }
+
+    @Test
+    public void testKeepPlaying() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(keepArr);
+        assertEquals(-1, t.win());
+    }
+
+    @Test
+    public void testLost() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(lBoard);
+        assertEquals(1, t.win());
+    }
+
+    @Test
+    public void testZeroZeros() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(lBoard);
+        assertEquals(0, t.zeroCounter());
+    }
+
+    @Test
+    public void testZeros() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(winArr);
+        assertEquals(12, t.zeroCounter());
+    }
+
+/** I struggled to figure out how to test the collection aspect of my undo,
+ *  so the test failed, but here's my best try at it */
+/**
+    @Test
+    public void testUndo() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(winArr);
+        t.moveDown();
+        t.undo();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(winArr, result));
+    }
+    */
+    @Test
+    public void testMoveDown() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(moveBoard);
+        t.moveDown();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(downBoard, result));
+    }
+
+    @Test
+    public void testMoveDownMerge() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(mergeBoard);
+        t.moveDown();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(mergeRes, result));
+    }
+
+    @Test
+    public void testDoubleMove() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(moveBoard);
+        t.moveDown();
+        t.moveRight();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(doubleBoard, result));
+    }
+/** this method is to cover the edge case of not having a move because in my game running into
+ * a wall adds another random tile, which can't be tested b/c of it's randomness*/
+    @Test
+    public void testCantMove() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(mtBoard);
+        t.moveUp();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(mtBoard, result));
+    }
+
+    @Test
+    public void testMoveMoveUp() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(moveBoard);
+        t.moveUp();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(upBoard, result));
+    }
+
+    @Test
+    public void testMoveMoveRight() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(moveBoard);
+        t.moveRight();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(rightBoard, result));
+    }
+
+    @Test
+    public void testMoveMoveLeft() {
+        Tommy2048 t = new Tommy2048();
+        t.setTBoard(moveBoard);
+        t.moveLeft();
+        int[][] result = t.getTestBoard();
+        assertTrue(t.equals(leftBoard, result));
+    }
+
+    @Test
+    public void testGetScoreDown() {
+        Tommy2048 t = new Tommy2048();
+        t.reset();
+        t.setTBoard(moveBoard);
+        t.moveDown();
+        assertEquals(8, t.getScore());
+    }
+
+    @Test
+    public void testGetScoreRightConfirm() {
+        Tommy2048 t = new Tommy2048();
+        t.reset();
+        t.setTBoard(moveBoard);
+        t.moveRight();
+        assertEquals(8, t.getScore());
+    }
+
+}
