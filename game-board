@@ -1,0 +1,226 @@
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+@SuppressWarnings("serial")
+public class GameBoard extends JPanel {
+
+    private Tommy2048 t; // model for the game
+    private JLabel status; // current status text
+    private JLabel score; // current status text
+
+    // Game constants
+    public static final int BOARD_WIDTH = 400;
+    public static final int BOARD_HEIGHT = 400;
+
+    private int[][] saver;
+
+    /**
+     * Initializes the game board.
+     */
+    public GameBoard(JLabel statusInit, JLabel scoreInit) {
+        setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        setFocusable(true);
+        t = new Tommy2048(); // initializes model for the game
+        status = statusInit; // initializes the status JLabel
+        score = scoreInit;
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (t.playing()) {
+                    if (e.getKeyChar() == 'w') {
+                        t.moveUp();
+                        makeTile();
+                    } else if (e.getKeyChar() == 'a') {
+                        t.moveLeft();
+                        makeTile();
+                    } else if (e.getKeyChar() == 's') {
+                        t.moveDown();
+                        makeTile();
+                    } else if (e.getKeyChar() == 'd') {
+                        t.moveRight();
+                        makeTile();
+                    }
+                    updateScore();
+                    updateStatus();
+                    repaint();
+                }
+            }
+        });
+    }
+
+
+
+
+    /**
+     * creates a new random tile
+     */
+    public void makeTile() {
+        if (t.zeroCounter() != 0) {
+            t.createTile();
+        }
+        t.setBoard();
+    }
+
+    public void save() {
+        t.save();
+        score.setText("Score: " + t.getScore());
+        repaint();
+        focus();
+    }
+
+    public void load() {
+        t.load();
+        score.setText("Score: " + t.getScore());
+        repaint();
+        focus();
+    }
+
+    public void undo() {
+        t.undo();
+        score.setText("Score: " + t.getScore());
+        repaint();
+        focus();
+    }
+    /**
+     * (Re-)sets the game to its initial state.
+     */
+    public void reset() {
+        t.reset();
+        status.setText("2048");
+        score.setText("Score: 0");
+        repaint();
+        focus();
+    }
+
+    //public void save() {
+    //    saver = t.getBoard(board);
+  //  }
+
+   // public void load() {
+    //    board = saver;
+    //    t.setBoard();
+   // }
+
+    /**
+     * Updates the JLabel to reflect the current state of the game.
+     */
+    private void updateStatus() {
+        int won = t.win();
+        if (won == 1) {
+            status.setText("YOU LOST!");
+        } else if (won == 0) {
+            status.setText("YOU WON!");
+        }
+    }
+
+    /**
+     * Updates the JLabel to reflect the current score of the game.
+     */
+    private void updateScore() {
+        score.setText("Score: " + t.getScore());
+    }
+
+    /**
+     * Draws the game board.
+     */
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        // Draws board grid
+        //g.setColor(Color.GRAY);
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int state = t.getCell(i, j);
+                int x = 100 * i;
+                int y = 100 * j;
+                if (state == 0) {
+                    g.setColor(Color.GRAY);
+                    g.fillRect(x, y, 100, 100);
+                } else if (state == 2) {
+                    g.setColor(Color.RED);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("2", x + 50, y + 50);
+                } else if (state == 4) {
+                    g.setColor(Color.ORANGE);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("4", x + 50, y + 50);
+                } else if (state == 8) {
+                    g.setColor(Color.YELLOW);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("8", x + 50, y + 50);
+                } else if (state == 16) {
+                    g.setColor(Color.GREEN);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("16", x + 50, y + 50);
+                } else if (state == 32) {
+                    g.setColor(Color.BLUE);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("32", x + 50, y + 50);
+                } else if (state == 64) {
+                    g.setColor(Color.PINK);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("64", x + 50, y + 50);
+                } else if (state == 128) {
+                    g.setColor(Color.MAGENTA);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("128", x + 50, y + 50);
+                } else if (state == 256) {
+                    g.setColor(Color.CYAN);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("256", x + 50, y + 50);
+                } else if (state == 512) {
+                    g.setColor(Color.RED);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("512", x + 50, y + 50);
+                } else if (state == 1024) {
+                    g.setColor(Color.GREEN);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("1024", x + 50, y + 50);
+                } else if (state == 2048) {
+                    g.setColor(Color.YELLOW);
+                    g.fillRect(x, y, 100, 100);
+                    g.setColor(Color.WHITE);
+                    g.drawString("2048", x + 50, y + 50);
+                }
+            }
+        }
+        g.setColor(Color.BLACK);
+        g.drawLine(0, 0, 400, 0);
+        g.drawLine(0, 100, 400, 100);
+        g.drawLine(0, 200, 400, 200);
+        g.drawLine(0, 300, 400, 300);
+        g.drawLine(0, 400, 400, 400);
+
+        g.drawLine(0, 0, 0, 400);
+        g.drawLine(100, 0, 100, 400);
+        g.drawLine(200, 0, 200, 400);
+        g.drawLine(300, 0, 300, 400);
+        g.drawLine(400, 0, 400, 400);
+    }
+
+    /**
+     * Returns the size of the game board.
+     */
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(BOARD_WIDTH, BOARD_HEIGHT);
+    }
+
+    public void focus() {
+        requestFocusInWindow();
+    }
+}
